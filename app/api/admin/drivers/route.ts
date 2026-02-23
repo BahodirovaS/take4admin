@@ -10,7 +10,7 @@ export async function GET(req: Request) {
 
   const { data, error } = await supabaseServer
     .from("drivers")
-    .select("driver_id,name,email,is_active,status,last_ping_at,last_lat,last_lng")
+    .select("driver_id,name,email,phone_number,is_active,status,last_ping_at,last_lat,last_lng")
     .order("last_ping_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
