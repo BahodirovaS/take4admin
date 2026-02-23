@@ -16,29 +16,3 @@ export async function GET(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ drivers: data ?? [] });
 }
-
-export async function PATCH(req: Request) {
-  const token = req.headers.get("x-admin-token");
-  if (!isValidAdminToken(token)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const body = await req.json();
-  const driverId = body.driverId as string;
-  const isActive = body.isActive as boolean;
-
-  if (!driverId || typeof isActive !== "boolean") {
-    return NextResponse.json(
-      { error: "driverId and isActive required" },
-      { status: 400 }
-    );
-  }
-
-  const { error } = await supabaseServer
-    .from("drivers")
-    .update({ is_active: isActive, updated_at: new Date().toISOString() })
-    .eq("driver_id", driverId);
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
-}

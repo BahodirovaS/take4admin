@@ -36,29 +36,6 @@ export default function DriversAdminPage() {
     setStatus("");
   };
 
-  const toggleActive = async (driverId: string, nextValue: boolean) => {
-    const res = await fetch("/api/admin/drivers", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "x-admin-token": token,
-      },
-      body: JSON.stringify({ driverId, isActive: nextValue }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      alert(err.error ?? "Failed to update driver");
-      return;
-    }
-
-    setDrivers((prev) =>
-      prev.map((d) =>
-        d.driver_id === driverId ? { ...d, is_active: nextValue } : d
-      )
-    );
-  };
-
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-semibold">Cabbage Admin — Drivers</h1>
@@ -83,14 +60,15 @@ export default function DriversAdminPage() {
       </div>
 
       <div className="overflow-auto">
-        <table className="min-w-[900px] border-collapse">
+        <table className="min-w-[1000px] border-collapse">
           <thead>
             <tr className="text-left border-b">
               <th className="py-2 pr-4">Driver</th>
               <th className="py-2 pr-4">Email</th>
               <th className="py-2 pr-4">Status</th>
               <th className="py-2 pr-4">Last Ping</th>
-              <th className="py-2 pr-4">Active</th>
+              <th className="py-2 pr-4">Lat</th>
+              <th className="py-2 pr-4">Lng</th>
             </tr>
           </thead>
 
@@ -106,25 +84,24 @@ export default function DriversAdminPage() {
                 <td className="py-2 pr-4">{d.status}</td>
 
                 <td className="py-2 pr-4">
-                  {d.last_ping_at ? new Date(d.last_ping_at).toLocaleString() : "-"}
+                  {d.last_ping_at
+                    ? new Date(d.last_ping_at).toLocaleString()
+                    : "-"}
                 </td>
 
                 <td className="py-2 pr-4">
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={d.is_active}
-                      onChange={(e) => toggleActive(d.driver_id, e.target.checked)}
-                    />
-                    {d.is_active ? "Yes" : "No"}
-                  </label>
+                  {typeof d.last_lat === "number" ? d.last_lat.toFixed(5) : "-"}
+                </td>
+
+                <td className="py-2 pr-4">
+                  {typeof d.last_lng === "number" ? d.last_lng.toFixed(5) : "-"}
                 </td>
               </tr>
             ))}
 
             {drivers.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-4 opacity-70">
+                <td colSpan={6} className="py-4 opacity-70">
                   No drivers yet. Once the driver app starts pinging, they’ll appear here.
                 </td>
               </tr>
