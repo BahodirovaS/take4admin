@@ -110,7 +110,6 @@ export default function PricingAdminPage() {
                     <div className="p-5">
                         <Field
                             label="Admin Token"
-                            hint="Quick protection for now — we can replace this with Clerk later."
                         >
                             <div className="flex gap-2">
                                 <input
