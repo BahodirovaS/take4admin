@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Pricing = {
   basePrice: number;
@@ -10,10 +10,31 @@ type Pricing = {
   fixedPickupTime: number;
 };
 
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-zinc-800">{label}</label>
+      {children}
+      {hint && <p className="text-xs text-zinc-500">{hint}</p>}
+    </div>
+  );
+}
+
 export default function PricingAdminPage() {
   const [token, setToken] = useState("");
+  const [showToken, setShowToken] = useState(false);
+
   const [pricing, setPricing] = useState<Pricing | null>(null);
   const [status, setStatus] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -24,127 +45,221 @@ export default function PricingAdminPage() {
     load();
   }, []);
 
+  const preview = useMemo(() => {
+    if (!pricing) return null;
+
+    // quick “typical ride” preview (optional)
+    const exampleMiles = 3.2;
+    const exampleMinutes = 12;
+    const est =
+      pricing.basePrice +
+      pricing.perMileRate * exampleMiles +
+      pricing.perMinuteRate * exampleMinutes;
+
+    const total = Math.max(est, pricing.minimumPrice);
+    return { total, exampleMiles, exampleMinutes };
+  }, [pricing]);
+
   const save = async () => {
     if (!pricing) return;
+    setStatus("");
+    setSaving(true);
 
-    setStatus("Saving...");
+    try {
+      const res = await fetch("/api/admin/pricing", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-token": token,
+        },
+        body: JSON.stringify(pricing),
+      });
 
-    const res = await fetch("/api/admin/pricing", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "x-admin-token": token,
-      },
-      body: JSON.stringify(pricing),
-    });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setStatus(`Error: ${err.error ?? res.statusText}`);
+        return;
+      }
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      setStatus(`Error: ${err.error ?? res.statusText}`);
-      return;
+      setStatus("Saved ✅");
+      setTimeout(() => setStatus(""), 1500);
+    } catch (e: any) {
+      setStatus(`Error: ${e?.message ?? "Request failed"}`);
+    } finally {
+      setSaving(false);
     }
-
-    setStatus("Saved ✅");
   };
 
-  if (!pricing) return <div className="p-6">Loading...</div>;
+  if (!pricing) return <div className="p-6">Loading…</div>;
 
-  const inputClass = "border rounded px-3 py-2 w-full";
+  const inputBase =
+    "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm shadow-inner outline-none focus:border-zinc-400";
 
   return (
-    <div className="p-6 max-w-xl space-y-4">
-      <h1 className="text-2xl font-semibold">Cabbage Admin — Pricing</h1>
+    <div className="min-h-screen bg-zinc-50">
+      <div className="mx-auto w-full max-w-4xl p-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Cabbage Admin</h1>
+          <p className="text-sm text-zinc-600">Pricing</p>
+        </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Admin Token</label>
-        <input
-          className={inputClass}
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="Paste ADMIN_TOKEN here"
-        />
-        <p className="text-xs opacity-70">
-          (Quick protection for now — we can replace this with Clerk later.)
-        </p>
+        {/* Token */}
+        <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
+          <div className="p-5">
+            <Field
+              label="Admin Token"
+              hint="Quick protection for now — we can replace this with Clerk later."
+            >
+              <div className="flex gap-2">
+                <input
+                  type={showToken ? "text" : "password"}
+                  className={`${inputBase} font-mono`}
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder="Paste ADMIN_TOKEN here"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken((v) => !v)}
+                  className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50"
+                >
+                  {showToken ? "Hide" : "Show"}
+                </button>
+              </div>
+            </Field>
+          </div>
+        </div>
+
+        {/* Pricing form */}
+        <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
+          <div className="p-5 space-y-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Base Price" hint="Flat fee added to every ride.">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-zinc-500">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={`${inputBase} pl-7`}
+                    value={pricing.basePrice}
+                    onChange={(e) =>
+                      setPricing({ ...pricing, basePrice: Number(e.target.value) })
+                    }
+                  />
+                </div>
+              </Field>
+
+              <Field label="Minimum Price" hint="Total charge will never be below this.">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-zinc-500">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={`${inputBase} pl-7`}
+                    value={pricing.minimumPrice}
+                    onChange={(e) =>
+                      setPricing({ ...pricing, minimumPrice: Number(e.target.value) })
+                    }
+                  />
+                </div>
+              </Field>
+
+              <Field label="Per Mile Rate" hint="Applied to distance-driven miles.">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-zinc-500">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={`${inputBase} pl-7`}
+                    value={pricing.perMileRate}
+                    onChange={(e) =>
+                      setPricing({ ...pricing, perMileRate: Number(e.target.value) })
+                    }
+                  />
+                </div>
+              </Field>
+
+              <Field label="Per Minute Rate" hint="Applied to ride duration minutes.">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-zinc-500">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={`${inputBase} pl-7`}
+                    value={pricing.perMinuteRate}
+                    onChange={(e) =>
+                      setPricing({ ...pricing, perMinuteRate: Number(e.target.value) })
+                    }
+                  />
+                </div>
+              </Field>
+
+              <div className="md:col-span-2">
+                <Field
+                  label="Fixed Pickup Time (minutes)"
+                  hint="Used in your fare calc as the baseline pickup time estimate."
+                >
+                  <input
+                    type="number"
+                    step="1"
+                    className={inputBase}
+                    value={pricing.fixedPickupTime}
+                    onChange={(e) =>
+                      setPricing({
+                        ...pricing,
+                        fixedPickupTime: Number(e.target.value),
+                      })
+                    }
+                  />
+                </Field>
+              </div>
+            </div>
+
+            {/* Optional preview */}
+            {preview && (
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
+                <div className="font-medium text-zinc-900">Quick preview</div>
+                <div className="mt-1">
+                  Example ride ({preview.exampleMiles} mi, {preview.exampleMinutes} min) ≈{" "}
+                  <span className="font-semibold">
+                    {new Intl.NumberFormat("en-US", {
+                      style: "currency",
+                      currency: "USD",
+                    }).format(preview.total)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={save}
+                disabled={!token || saving}
+                className={[
+                  "rounded-xl px-4 py-2 text-sm font-medium",
+                  !token || saving
+                    ? "bg-zinc-200 text-zinc-500"
+                    : "bg-zinc-900 text-white hover:bg-zinc-800",
+                ].join(" ")}
+              >
+                {saving ? "Saving…" : "Save Pricing"}
+              </button>
+
+              {status && (
+                <div className="text-sm text-zinc-700">{status}</div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium">Base Price</label>
-          <input
-            type="number"
-            step="0.01"
-            className={inputClass}
-            value={pricing.basePrice}
-            onChange={(e) =>
-              setPricing({ ...pricing, basePrice: Number(e.target.value) })
-            }
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Minimum Price</label>
-          <input
-            type="number"
-            step="0.01"
-            className={inputClass}
-            value={pricing.minimumPrice}
-            onChange={(e) =>
-              setPricing({ ...pricing, minimumPrice: Number(e.target.value) })
-            }
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Per Mile Rate</label>
-          <input
-            type="number"
-            step="0.01"
-            className={inputClass}
-            value={pricing.perMileRate}
-            onChange={(e) =>
-              setPricing({ ...pricing, perMileRate: Number(e.target.value) })
-            }
-          />
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Per Minute Rate</label>
-          <input
-            type="number"
-            step="0.01"
-            className={inputClass}
-            value={pricing.perMinuteRate}
-            onChange={(e) =>
-              setPricing({ ...pricing, perMinuteRate: Number(e.target.value) })
-            }
-          />
-        </div>
-
-        <div className="col-span-2">
-          <label className="text-sm font-medium">
-            Fixed Pickup Time (minutes)
-          </label>
-          <input
-            type="number"
-            step="1"
-            className={inputClass}
-            value={pricing.fixedPickupTime}
-            onChange={(e) =>
-              setPricing({
-                ...pricing,
-                fixedPickupTime: Number(e.target.value),
-              })
-            }
-          />
-        </div>
-      </div>
-
-      <button onClick={save} className="rounded bg-black text-white px-4 py-2">
-        Save Pricing
-      </button>
-
-      {status && <div className="text-sm">{status}</div>}
     </div>
   );
 }
