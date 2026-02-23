@@ -153,7 +153,7 @@ export default function PricingAdminPage() {
                                 </div>
                             </Field>
 
-                            <Field label="Minimum Price" hint="Total charge will never be below this.">
+                            {/* <Field label="Minimum Price" hint="Total charge will never be below this.">
                                 <div className="relative">
                                     <span className="pointer-events-none absolute left-3 top-2.5 text-sm text-zinc-700">
                                         $
@@ -168,7 +168,7 @@ export default function PricingAdminPage() {
                                         }
                                     />
                                 </div>
-                            </Field>
+                            </Field> */}
 
                             <Field label="Per Mile Rate" hint="Applied to distance-driven miles.">
                                 <div className="relative">
@@ -204,7 +204,7 @@ export default function PricingAdminPage() {
                                 </div>
                             </Field>
 
-                            <div className="md:col-span-2">
+                            {/* <div className="md:col-span-2">
                                 <Field
                                     label="Fixed Pickup Time (minutes)"
                                     hint="Used in your fare calc as the baseline pickup time estimate."
@@ -222,7 +222,7 @@ export default function PricingAdminPage() {
                                         }
                                     />
                                 </Field>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Optional preview */}

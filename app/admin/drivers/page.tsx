@@ -6,6 +6,7 @@ type Driver = {
     driver_id: string;
     name: string | null;
     email: string | null;
+    phone_number: string | null;
     is_active: boolean;
     status: string;
     last_ping_at: string | null;
@@ -83,6 +84,7 @@ export default function DriversAdminPage() {
                 d.driver_id.toLowerCase().includes(q) ||
                 (d.name ?? "").toLowerCase().includes(q) ||
                 (d.email ?? "").toLowerCase().includes(q) ||
+                (d.phone_number ?? "").toLowerCase().includes(q) ||
                 (d.status ?? "").toLowerCase().includes(q)
             );
         });
@@ -174,7 +176,7 @@ export default function DriversAdminPage() {
                                     className={inputClass}
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="name, email, status, id…"
+                                    placeholder="name, email, phone number, status, id…"
                                 />
                                 <button
                                     onClick={loadDrivers}
@@ -207,6 +209,7 @@ export default function DriversAdminPage() {
                                 <tr className="border-b border-zinc-200 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">
                                     <th className="py-3 px-4">Driver</th>
                                     <th className="py-3 px-4">Email</th>
+                                    <th className="py-3 px-4">Phone Number</th>
                                     <th className="py-3 px-4">Status</th>
                                     <th className="py-3 px-4">Last Ping</th>
                                     <th className="py-3 px-4">Lat</th>
@@ -247,6 +250,7 @@ export default function DriversAdminPage() {
                                         </td>
 
                                         <td className="py-3 px-4 text-zinc-800">{d.email ?? "-"}</td>
+                                        <td className="py-3 px-4 text-zinc-800">{d.phone_number ?? "-"}</td>
 
                                         <td className="py-3 px-4">
                                             <Badge tone={statusTone(d)}>{d.status || "unknown"}</Badge>
