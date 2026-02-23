@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { isValidAdminToken } from "../../../../lib/adminAuth";
 import { firestoreAdmin } from "../../../../lib/firebaseAdmin";
 
+export const dynamic = "force-dynamic";
+
 type DriverRow = {
   driver_id: string;
   name: string | null;
@@ -23,8 +25,6 @@ function pickLastSeen(d: any): string | null {
   return (
     toIso(d.last_location_at) ??
     toIso(d.last_checked) ??
-    toIso(d.last_online) ??
-    toIso(d.last_offline) ??
     toIso(d.updatedAt) ??
     toIso(d.createdAt) ??
     null
@@ -32,16 +32,8 @@ function pickLastSeen(d: any): string | null {
 }
 
 function deriveAvailability(d: any): "online" | "offline" {
-  const on = d.last_online?.toDate?.() ?? (d.last_online instanceof Date ? d.last_online : null);
-  const off = d.last_offline?.toDate?.() ?? (d.last_offline instanceof Date ? d.last_offline : null);
-
-  if (on && off) return on.getTime() >= off.getTime() ? "online" : "offline";
-  if (on && !off) return "online";
-  if (!on && off) return "offline";
-
-  if (typeof d.status === "boolean") return d.status ? "online" : "offline";
-
-  return "offline";
+  // ONLY use Firestore boolean `status`
+  return d.status === true ? "online" : "offline";
 }
 
 export async function GET(req: Request) {
@@ -67,7 +59,12 @@ export async function GET(req: Request) {
     };
   });
 
-  drivers.sort((a, b) => (b.last_seen_at ?? "").localeCompare(a.last_seen_at ?? ""));
+  drivers.sort((a, b) =>
+    (b.last_seen_at ?? "").localeCompare(a.last_seen_at ?? "")
+  );
 
-  return NextResponse.json({ drivers });
+  return NextResponse.json(
+    { drivers },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
