@@ -157,9 +157,7 @@ export default function DriversAdminPage() {
                                         {showToken ? "Hide" : "Show"}
                                     </button>
                                 </div>
-                                <p className="text-xs text-zinc-500">
-                                    Quick protection for now — we can swap this to Clerk later.
-                                </p>
+                                
                             </div>
 
                             <div className="space-y-2">
@@ -168,7 +166,7 @@ export default function DriversAdminPage() {
                                     className={inputClass}
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="name, email, phone number, availability, id…"
+                                    placeholder="name, email, or phone number"
                                 />
                                 <button
                                     onClick={loadDrivers}
@@ -223,14 +221,14 @@ export default function DriversAdminPage() {
                                                     {d.name ?? "(no name)"}
                                                 </div>
                                                 <div className="mt-0.5 flex items-center gap-2">
-                                                    <code className="text-xs text-zinc-600">{d.driver_id}</code>
+                                                    {/* <code className="text-xs text-zinc-600">{d.driver_id}</code>
                                                     <button
                                                         className="text-xs text-zinc-500 hover:text-zinc-900"
                                                         onClick={() => copy(d.driver_id)}
                                                         type="button"
                                                     >
                                                         Copy
-                                                    </button>
+                                                    </button> */}
                                                 </div>
                                             </div>
                                         </td>
