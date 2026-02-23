@@ -13,12 +13,10 @@ type Driver = {
   last_lng: number | null;
 };
 
-const BRAND = {
-  green: "#3f7564",
-  greenDark: "#2e5a4c",
-  greenSoft: "#e7f1ed",
-  border: "#cfe1db",
-};
+const inputClass =
+  "w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm shadow-inner outline-none " +
+  "text-zinc-900 placeholder:text-zinc-500 " +
+  "focus:border-zinc-400";
 
 function Badge({
   children,
@@ -27,13 +25,12 @@ function Badge({
   children: React.ReactNode;
   tone?: "gray" | "green" | "yellow" | "red" | "blue";
 }) {
-  // make badges readable on light backgrounds + slightly “product-y”
   const tones: Record<string, string> = {
-    gray: "bg-zinc-100 text-zinc-800 ring-zinc-200",
-    green: "bg-emerald-100 text-emerald-900 ring-emerald-200",
-    yellow: "bg-amber-100 text-amber-950 ring-amber-200",
-    red: "bg-rose-100 text-rose-950 ring-rose-200",
-    blue: "bg-sky-100 text-sky-950 ring-sky-200",
+    gray: "bg-zinc-100 text-zinc-700 ring-zinc-200",
+    green: "bg-emerald-100 text-emerald-800 ring-emerald-200",
+    yellow: "bg-amber-100 text-amber-900 ring-amber-200",
+    red: "bg-rose-100 text-rose-900 ring-rose-200",
+    blue: "bg-sky-100 text-sky-900 ring-sky-200",
   };
 
   return (
@@ -126,20 +123,12 @@ export default function DriversAdminPage() {
   };
 
   return (
-    <div
-      className="min-h-screen text-zinc-900"
-      style={{ backgroundColor: BRAND.greenSoft }}
-    >
+    <div className="min-h-screen bg-zinc-50">
       <div className="mx-auto w-full max-w-6xl p-6 space-y-6">
-        {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-              Take4 Admin
-            </h1>
-            <p className="text-sm" style={{ color: BRAND.green }}>
-              Drivers
-            </p>
+            <h1 className="text-2xl font-semibold tracking-tight">Cabbage Admin</h1>
+            <p className="text-sm text-zinc-600">Drivers</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -151,73 +140,49 @@ export default function DriversAdminPage() {
         </div>
 
         {/* Controls */}
-        <div
-          className="rounded-2xl border bg-white shadow-sm"
-          style={{ borderColor: BRAND.border }}
-        >
+        <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
           <div className="p-5 space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="md:col-span-2 space-y-2">
-                <label className="text-sm font-medium text-zinc-900">
-                  Admin Token
-                </label>
-
+                <label className="text-sm font-medium text-zinc-800">Admin Token</label>
                 <div className="flex gap-2">
                   <input
                     type={showToken ? "text" : "password"}
-                    className="w-full rounded-xl border bg-white px-3 py-2 font-mono text-sm shadow-inner outline-none text-zinc-900 placeholder:text-zinc-400"
-                    style={{
-                      borderColor: BRAND.border,
-                      // focus ring via inline style (no tailwind config needed)
-                      boxShadow: "inset 0 1px 2px rgba(0,0,0,0.06)",
-                    }}
+                    className={`${inputClass} font-mono`}
                     value={token}
                     onChange={(e) => setToken(e.target.value)}
                     placeholder="Paste ADMIN_TOKEN here"
                   />
-
                   <button
                     type="button"
                     onClick={() => setShowToken((v) => !v)}
-                    className="rounded-xl border bg-white px-3 py-2 text-sm text-zinc-900 hover:bg-zinc-50"
-                    style={{ borderColor: BRAND.border }}
+                    className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm hover:bg-zinc-50"
                   >
                     {showToken ? "Hide" : "Show"}
                   </button>
                 </div>
-
-                <p className="text-xs text-zinc-600">
+                <p className="text-xs text-zinc-500">
                   Quick protection for now — we can swap this to Clerk later.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-900">Search</label>
+                <label className="text-sm font-medium text-zinc-800">Search</label>
                 <input
-                  className="w-full rounded-xl border bg-white px-3 py-2 text-sm shadow-inner outline-none text-zinc-900 placeholder:text-zinc-400"
-                  style={{ borderColor: BRAND.border }}
+                  className={inputClass}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="name, email, status, id…"
                 />
-
                 <button
                   onClick={loadDrivers}
                   disabled={!token || loading}
-                  className="w-full rounded-xl px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-                  style={{
-                    backgroundColor: !token || loading ? "#9CA3AF" : BRAND.green,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!token || loading) return;
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                      BRAND.greenDark;
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!token || loading) return;
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                      BRAND.green;
-                  }}
+                  className={[
+                    "w-full rounded-xl px-4 py-2 text-sm font-medium",
+                    !token || loading
+                      ? "bg-zinc-200 text-zinc-500"
+                      : "bg-zinc-900 text-white hover:bg-zinc-800",
+                  ].join(" ")}
                 >
                   {loading ? "Loading…" : "Load Drivers"}
                 </button>
@@ -225,10 +190,7 @@ export default function DriversAdminPage() {
             </div>
 
             {status && (
-              <div
-                className="rounded-xl border px-3 py-2 text-sm text-zinc-900"
-                style={{ borderColor: BRAND.border, backgroundColor: "#F8FAFC" }}
-              >
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700">
                 {status}
               </div>
             )}
@@ -236,20 +198,11 @@ export default function DriversAdminPage() {
         </div>
 
         {/* Table */}
-        <div
-          className="rounded-2xl border bg-white shadow-sm overflow-hidden"
-          style={{ borderColor: BRAND.border }}
-        >
+        <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
           <div className="overflow-auto">
             <table className="min-w-[1050px] w-full border-collapse">
-              <thead
-                className="sticky top-0 z-10"
-                style={{ backgroundColor: BRAND.greenSoft }}
-              >
-                <tr
-                  className="border-b text-left text-xs font-semibold uppercase tracking-wide"
-                  style={{ borderColor: BRAND.border, color: "#1f2937" }}
-                >
+              <thead className="sticky top-0 z-10 bg-white">
+                <tr className="border-b border-zinc-200 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">
                   <th className="py-3 px-4">Driver</th>
                   <th className="py-3 px-4">Email</th>
                   <th className="py-3 px-4">Status</th>
@@ -263,19 +216,11 @@ export default function DriversAdminPage() {
                 {filtered.map((d, idx) => (
                   <tr
                     key={d.driver_id}
-                    className="border-b"
-                    style={{
-                      borderColor: "#F1F5F9",
-                      backgroundColor: idx % 2 === 0 ? "#FFFFFF" : "#FBFEFD",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLTableRowElement).style.backgroundColor =
-                        BRAND.greenSoft;
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLTableRowElement).style.backgroundColor =
-                        idx % 2 === 0 ? "#FFFFFF" : "#FBFEFD";
-                    }}
+                    className={[
+                      "border-b border-zinc-100",
+                      idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50",
+                      "hover:bg-zinc-50",
+                    ].join(" ")}
                   >
                     <td className="py-3 px-4">
                       <div className="flex items-start justify-between gap-3">
@@ -284,10 +229,9 @@ export default function DriversAdminPage() {
                             {d.name ?? "(no name)"}
                           </div>
                           <div className="mt-0.5 flex items-center gap-2">
-                            <code className="text-xs text-zinc-700">{d.driver_id}</code>
+                            <code className="text-xs text-zinc-600">{d.driver_id}</code>
                             <button
-                              className="text-xs underline-offset-2 hover:underline"
-                              style={{ color: BRAND.green }}
+                              className="text-xs text-zinc-500 hover:text-zinc-900"
                               onClick={() => copy(d.driver_id)}
                               type="button"
                             >
@@ -296,29 +240,23 @@ export default function DriversAdminPage() {
                           </div>
                         </div>
 
-                        {d.is_active ? (
-                          <Badge tone="green">Active</Badge>
-                        ) : (
-                          <Badge tone="gray">Inactive</Badge>
-                        )}
+                        {d.is_active ? <Badge tone="green">Active</Badge> : <Badge>Inactive</Badge>}
                       </div>
                     </td>
 
-                    <td className="py-3 px-4 text-zinc-900">{d.email ?? "-"}</td>
+                    <td className="py-3 px-4 text-zinc-800">{d.email ?? "-"}</td>
 
                     <td className="py-3 px-4">
                       <Badge tone={statusTone(d)}>{d.status || "unknown"}</Badge>
                     </td>
 
-                    <td className="py-3 px-4 text-zinc-900">
-                      {fmtDate(d.last_ping_at)}
-                    </td>
+                    <td className="py-3 px-4 text-zinc-800">{fmtDate(d.last_ping_at)}</td>
 
-                    <td className="py-3 px-4 font-mono text-xs text-zinc-800">
+                    <td className="py-3 px-4 font-mono text-xs text-zinc-700">
                       {fmtCoord(d.last_lat)}
                     </td>
 
-                    <td className="py-3 px-4 font-mono text-xs text-zinc-800">
+                    <td className="py-3 px-4 font-mono text-xs text-zinc-700">
                       {fmtCoord(d.last_lng)}
                     </td>
                   </tr>
@@ -326,12 +264,12 @@ export default function DriversAdminPage() {
 
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-10 px-4 text-center text-zinc-700">
+                    <td colSpan={6} className="py-10 px-4 text-center text-zinc-600">
                       <div className="mx-auto max-w-md space-y-2">
-                        <div className="text-base font-medium text-zinc-900">
+                        <div className="text-base font-medium text-zinc-800">
                           No drivers to show
                         </div>
-                        <div className="text-sm text-zinc-700">
+                        <div className="text-sm">
                           {drivers.length === 0
                             ? "Once the driver app starts pinging, they’ll appear here."
                             : "Try clearing the search filter."}
@@ -345,7 +283,7 @@ export default function DriversAdminPage() {
           </div>
         </div>
 
-        <p className="text-xs text-zinc-700">
+        <p className="text-xs text-zinc-500">
           Tip: add server-side sorting later (by last_ping_at) if this list grows.
         </p>
       </div>
