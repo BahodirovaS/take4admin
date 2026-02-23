@@ -107,6 +107,7 @@ export default function DriversAdminPage() {
 
             const data = await res.json();
             setDrivers(data.drivers ?? []);
+            console.log("drivers[0]", data.drivers?.[0]);
         } catch (e: any) {
             setStatus(`Error: ${e?.message ?? "Request failed"}`);
         } finally {
